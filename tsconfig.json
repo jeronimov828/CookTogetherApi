@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "lib": ["es5", "es6"],
+    "target": "es5",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./build",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "rootDir": "./",            // ✅ Permite archivos fuera de src
+    "resolveJsonModule": true   // ✅ Por si usas archivos .json en imports
+  },
+  "include": [
+    "src/**/*",                // ✅ Incluye todo el código fuente
+    "ormconfig.ts"             // ✅ Incluye este archivo específico
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
