@@ -5,6 +5,7 @@ import { AppDataSource } from "./config/data-source";
 import Usuariosrouter from "./routes/usuarios.routes";
 import recetasRouter from "./routes/recetas.routes";
 import pasosRouter from "./routes/pasos.routes";
+import ingredientesRouter from "./routes/ingredientes.router";
 import path from "path";
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(cors());
 app.use("/apiRecetas/usuarios", Usuariosrouter);
 app.use("/apiRecetas/recetas", recetasRouter);
 app.use("/apiRecetas/pasos", pasosRouter);
+app.use("/apiRecetas/ingredientes", ingredientesRouter);
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 AppDataSource.initialize()
