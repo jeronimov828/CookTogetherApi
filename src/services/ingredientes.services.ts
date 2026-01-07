@@ -1,6 +1,4 @@
 import { IngredientesRepository } from "../repositories/ingredientes.repository";
-import { User } from "../entities/usuarios.entities";
-import { Receta } from "../entities/receta.entities";
 import { Ingredientes } from "../entities/ingredientes.entities";
 
 export class IngredientesService {
@@ -9,5 +7,23 @@ export class IngredientesService {
       where: { receta: { id: recetaId } },
       relations: { receta: true },
     });
+  }
+
+  static async agregarIngrediente(
+    recetaId: string,
+    nombre: string,
+    calorias: number
+  ): Promise<Ingredientes> {
+    const nuevoIngrediente = IngredientesRepository.create({
+      nombre,
+      calorias,
+      receta: { id: recetaId },
+    });
+    return await IngredientesRepository.save(nuevoIngrediente);
+  }
+
+  static async eliminarrIngrediente(ingredienteId: string): Promise<boolean> {
+    const result = await IngredientesRepository.delete({ id: ingredienteId });
+    return !!result.affected && result.affected > 0;
   }
 }

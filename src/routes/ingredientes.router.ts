@@ -11,4 +11,15 @@ ingredientesRouter.get(
   IngredienteController.listarIngredientes.bind(ingredientesController)
 );
 
+ingredientesRouter.post(
+  "/agregarIngrediente/:id",
+  authMiddleware,
+  IngredienteController.agregarIngredientes.bind(ingredientesController)
+);
+
+ingredientesRouter.delete(
+  "/eliminarIngredientes/:id",
+  authMiddleware,
+  IngredienteController.eliminarIngrediente.bind(ingredientesController)
+);
 export default ingredientesRouter;

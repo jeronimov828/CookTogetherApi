@@ -15,4 +15,9 @@ pasosRouter.get(
   authMiddleware,
   pasosController.listarPasosReceta.bind(pasosController)
 );
+pasosRouter.delete(
+  "/eliminarPasos/:id",
+  authMiddleware,
+  pasosController.eliminarPasos.bind(pasosController)
+);
   export default pasosRouter;

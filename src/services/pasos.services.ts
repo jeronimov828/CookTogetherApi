@@ -28,4 +28,9 @@ export class pasosService {
       relations: { receta: true }
     });
   }
+
+  static async eliminarPasos (idPaso: string): Promise<boolean> {
+    const result = await pasosRepository.delete({id: idPaso});
+    return !!result.affected && result.affected > 0;
+  }
 }

@@ -3,6 +3,7 @@ import { pasosService } from "../services/pasos.services";
 import { User } from "../entities/usuarios.entities";
 import { AppDataSource } from "../config/data-source";
 import { Receta } from "../entities/receta.entities";
+import { validate as isUUID } from "uuid";
 
 const PasosService = new pasosService();
 
@@ -70,6 +71,46 @@ export class PasosController {
     } catch (error) {
       console.error("Error al listar los pasos:", error);
       return res.status(500).json({ error: "Error interno del servidor" });
+    }
+  }
+
+  async eliminarPasos(req: AuthRequest, res: Response) {
+    try {
+      const { id } = req.params;
+
+      // 1. Validar que exista
+      if (!id) {
+        return res.status(400).json({
+          error: "El ID del paso es requerido",
+        });
+      }
+
+      // 2. Validar que sea UUID
+      if (!isUUID(id)) {
+        return res.status(400).json({
+          error: "El ID del paso no es un UUID válido",
+        });
+      }
+
+      // 3. Eliminar
+      const eliminado = await pasosService.eliminarPasos(id);
+
+      // 4. Si no se eliminó nada
+      if (!eliminado) {
+        return res.status(404).json({
+          error: "El paso no existe",
+        });
+      }
+
+      // 5. Éxito
+      return res.status(200).json({
+        mensaje: "paso eliminado exitosamente",
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: "Error interno del servidor",
+        detalle: (error as Error).message,
+      });
     }
   }
 }
