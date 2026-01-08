@@ -1,36 +1,38 @@
-import { pasos } from "../entities/pasos.entities";
-import { pasosRepository } from "../repositories/pasos.repository";
+import { Paso } from "../entities/pasos.entities";
+import { PasosRepository } from "../repositories/pasos.repository";
 import { RecetasRepository } from "../repositories/recetas.repository";
+import { NotFoundError } from "../utils/errors";
 
-export class pasosService {
+export class PasosService {
   async agregarPasos(
     recetaId: string,
     listaPasos: { orden: number; contenido: string }[]
-  ) {
+  ): Promise<Paso[]> {
     const receta = await RecetasRepository.findOneBy({ id: recetaId });
-    if (!receta) throw new Error("Receta no encontrada");
+    if (!receta) throw new NotFoundError("Receta");
 
     const nuevosPasos = listaPasos.map((p) => {
-      const pasoEntity = new pasos();
+      const pasoEntity = new Paso();
       pasoEntity.orden = p.orden;
       pasoEntity.contenido = p.contenido;
       pasoEntity.receta = receta;
       return pasoEntity;
     });
 
-    await pasosRepository.save(nuevosPasos);
+    await PasosRepository.save(nuevosPasos);
     return nuevosPasos;
   }
 
-  static async ListarPasos(recetaId: string): Promise<pasos[]> {
-    return await pasosRepository.find({
+  static async listarPasos(recetaId: string): Promise<Paso[]> {
+    return await PasosRepository.find({
       where: { receta: { id: recetaId } },
-      relations: { receta: true }
+      relations: { receta: true },
+      order: { orden: "ASC" },
     });
   }
 
-  static async eliminarPasos (idPaso: string): Promise<boolean> {
-    const result = await pasosRepository.delete({id: idPaso});
+  static async eliminarPasos(idPaso: string): Promise<boolean> {
+    const result = await PasosRepository.delete({ id: idPaso });
     return !!result.affected && result.affected > 0;
   }
 }

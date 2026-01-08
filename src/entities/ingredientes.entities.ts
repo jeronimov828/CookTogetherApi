@@ -5,10 +5,10 @@ import { User } from "./usuarios.entities";
 @Entity("ingredientes")
 export class Ingredientes {
   @PrimaryGeneratedColumn("uuid")
-  id: string;
+  id!: string;
 
   @Column({ length: 100 })
-  nombre: string;
+  nombre!: string;
 
   @Column({ nullable: true })
   calorias?: number;
@@ -16,11 +16,11 @@ export class Ingredientes {
   @ManyToOne(() => User, (usuario) => usuario.ingredientes, {
     onDelete: "CASCADE",
   })
-  usuario: User;
+  usuario!: User;
 
   @ManyToOne(() => Receta, (receta) => receta.ingredientes, {
     onDelete: "CASCADE", // Si se elimina la receta, se borran sus ingredientes
   })
   @JoinColumn({ name: "recetaId" })
-  receta: Receta;
+  receta!: Receta;
 }

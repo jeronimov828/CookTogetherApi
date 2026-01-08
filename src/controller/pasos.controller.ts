@@ -1,116 +1,89 @@
-import { Request, Response } from "express";
-import { pasosService } from "../services/pasos.services";
-import { User } from "../entities/usuarios.entities";
+import { Response } from "express";
+import { PasosService } from "../services/pasos.services";
+import { AuthRequest } from "../types/express.d";
 import { AppDataSource } from "../config/data-source";
 import { Receta } from "../entities/receta.entities";
-import { validate as isUUID } from "uuid";
+import { NotFoundError, UnauthorizedError } from "../utils/errors";
+import { PasosRepository } from "../repositories/pasos.repository";
 
-const PasosService = new pasosService();
-
-interface AuthRequest extends Request {
-  user?: { id: string };
-}
+const pasosService = new PasosService();
 
 export class PasosController {
   async crearPasosReceta(req: AuthRequest, res: Response) {
-    try {
-      const recetaId = req.params.id;
-      const pasos = req.body.pasos;
+    const recetaId = req.params.id;
+    const pasos = req.body.pasos;
 
-      const usuario_id = req.user?.id;
-
-      const usuario = await AppDataSource.getRepository(User).findOneBy({
-        id: usuario_id,
-      });
-
-      if (!usuario) {
-        return res.status(404).json({ error: "Usuario no encontrado" });
-      }
-
-      const resultado = await PasosService.agregarPasos(recetaId, pasos);
-      res.json(resultado);
-    } catch (error) {
-      res.status(400).json({ mensaje: error.message });
+    if (!Array.isArray(pasos) || pasos.length === 0) {
+      res.status(400).json({ error: "Debe proporcionar al menos un paso" });
+      return;
     }
+
+    // Verificar que la receta existe y pertenece al usuario
+    const receta = await AppDataSource.getRepository(Receta).findOne({
+      where: { id: recetaId },
+      relations: { autor: true },
+    });
+
+    if (!receta) {
+      throw new NotFoundError("Receta");
+    }
+
+    if (receta.autor.id !== req.user!.id) {
+      throw new UnauthorizedError("No tienes permisos para modificar esta receta");
+    }
+
+    const resultado = await pasosService.agregarPasos(recetaId, pasos);
+    res.status(201).json(resultado);
   }
 
   async listarPasosReceta(req: AuthRequest, res: Response) {
-    try {
-      const { id } = req.params; // <-- ID de la receta viene por la URL
-      const userId = req.user?.id; // <-- el usuario autenticado
+    const { id } = req.params;
 
-      if (!id) {
-        return res.status(400).json({ error: "Falta el ID de la receta" });
-      }
+    // Verificar que la receta existe
+    const receta = await AppDataSource.getRepository(Receta).findOne({
+      where: { id },
+      relations: { autor: true },
+    });
 
-      // Verificar que el usuario existe
-      const usuario = await AppDataSource.getRepository(User).findOneBy({
-        id: userId,
-      });
-
-      if (!usuario) {
-        return res.status(404).json({ error: "Usuario no encontrado" });
-      }
-
-      // 🔹 Buscar la receta y validar que pertenezca al usuario
-      const receta = await AppDataSource.getRepository(Receta).findOne({
-        where: { id, autor: { id: usuario.id } },
-        relations: { autor: true },
-      });
-
-      if (!receta) {
-        return res
-          .status(404)
-          .json({ error: "Receta no encontrada o no pertenece al usuario" });
-      }
-
-      // 🔹 Listar los pasos asociados a esa receta
-      const pasos = await pasosService.ListarPasos(id);
-
-      return res.status(200).json(pasos);
-    } catch (error) {
-      console.error("Error al listar los pasos:", error);
-      return res.status(500).json({ error: "Error interno del servidor" });
+    if (!receta) {
+      throw new NotFoundError("Receta");
     }
+
+    // Si la receta no es pública, solo el autor puede verla
+    if (!receta.is_Public && receta.autor.id !== req.user?.id) {
+      throw new UnauthorizedError("No tienes permisos para ver esta receta");
+    }
+
+    const pasos = await PasosService.listarPasos(id);
+    res.status(200).json(pasos);
   }
 
   async eliminarPasos(req: AuthRequest, res: Response) {
-    try {
-      const { id } = req.params;
+    const { id } = req.params;
 
-      // 1. Validar que exista
-      if (!id) {
-        return res.status(400).json({
-          error: "El ID del paso es requerido",
-        });
-      }
+    // Buscar el paso para verificar que existe y obtener la receta
+    const paso = await PasosRepository.findOne({
+      where: { id },
+      relations: { receta: { autor: true } },
+    });
 
-      // 2. Validar que sea UUID
-      if (!isUUID(id)) {
-        return res.status(400).json({
-          error: "El ID del paso no es un UUID válido",
-        });
-      }
-
-      // 3. Eliminar
-      const eliminado = await pasosService.eliminarPasos(id);
-
-      // 4. Si no se eliminó nada
-      if (!eliminado) {
-        return res.status(404).json({
-          error: "El paso no existe",
-        });
-      }
-
-      // 5. Éxito
-      return res.status(200).json({
-        mensaje: "paso eliminado exitosamente",
-      });
-    } catch (error) {
-      return res.status(500).json({
-        error: "Error interno del servidor",
-        detalle: (error as Error).message,
-      });
+    if (!paso) {
+      throw new NotFoundError("Paso");
     }
+
+    // Verificar permisos
+    if (paso.receta.autor.id !== req.user!.id) {
+      throw new UnauthorizedError("No tienes permisos para eliminar este paso");
+    }
+
+    const eliminado = await PasosService.eliminarPasos(id);
+
+    if (!eliminado) {
+      throw new NotFoundError("Paso");
+    }
+
+    res.status(200).json({
+      mensaje: "Paso eliminado exitosamente",
+    });
   }
 }

@@ -1,19 +1,19 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Receta } from "./receta.entities";
 
-@Entity()
-export class pasos {
+@Entity("pasos")
+export class Paso {
   @PrimaryGeneratedColumn("uuid")
-  id: string;
+  id!: string;
 
   @Column()
-  orden: number;
+  orden!: number;
 
   @Column("text")
-  contenido: string;
+  contenido!: string;
 
-  @ManyToOne(() => Receta, (Receta) => Receta.pasos, {
+  @ManyToOne(() => Receta, (receta) => receta.pasos, {
     onDelete: "CASCADE",
   })
-  receta: Receta;
+  receta!: Receta;
 }

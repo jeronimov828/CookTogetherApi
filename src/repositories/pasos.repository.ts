@@ -1,4 +1,4 @@
 import { AppDataSource } from "../config/data-source";
-import { pasos } from "../entities/pasos.entities";
+import { Paso } from "../entities/pasos.entities";
 
-export const pasosRepository = AppDataSource.getRepository(pasos);
+export const PasosRepository = AppDataSource.getRepository(Paso);

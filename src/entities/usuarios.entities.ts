@@ -12,26 +12,26 @@ import { Ingredientes } from "./ingredientes.entities";
 @Entity("usuarios")
 export class User {
   @PrimaryGeneratedColumn("uuid")
-  id: string;
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column()
-  passwordHash: string;
+  passwordHash!: string;
 
   @Column()
-  role: string;
+  role!: string;
 
   @OneToMany(() => Receta, (r) => r.autor)
-  recetas: Receta[];
+  recetas!: Receta[];
 
   @OneToMany(() => Ingredientes, (ingrediente) => ingrediente.usuario)
-  ingredientes: Ingredientes[];
+  ingredientes!: Ingredientes[];
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }

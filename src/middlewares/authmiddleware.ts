@@ -1,9 +1,7 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-
-interface AuthRequest extends Request {
-  user?: { name: string; passwordHash: string; role: string };
-}
+import { AuthRequest } from "../types/express.d";
+import { env } from "../config/env";
 
 export const authMiddleware = (
   req: AuthRequest,
@@ -18,13 +16,17 @@ export const authMiddleware = (
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+    const decoded = jwt.verify(token, env.JWT_SECRET) as {
+      id: string;
       name: string;
-      passwordHash: string;
       role: string;
     };
 
-    req.user = decoded;
+    req.user = {
+      id: decoded.id,
+      name: decoded.name,
+      role: decoded.role,
+    };
     next();
   } catch (error) {
     res.status(403).json({ error: "Token inválido" });

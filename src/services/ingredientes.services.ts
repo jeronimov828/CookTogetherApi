@@ -22,7 +22,7 @@ export class IngredientesService {
     return await IngredientesRepository.save(nuevoIngrediente);
   }
 
-  static async eliminarrIngrediente(ingredienteId: string): Promise<boolean> {
+  static async eliminarIngrediente(ingredienteId: string): Promise<boolean> {
     const result = await IngredientesRepository.delete({ id: ingredienteId });
     return !!result.affected && result.affected > 0;
   }
